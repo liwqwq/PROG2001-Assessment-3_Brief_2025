@@ -3,12 +3,15 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class RobotController : MonoBehaviour
 {
+    [Header("æ§åˆ¶çŠ¶æ€")]
+    public bool isControllable = false;
+
     [Header("Movement Settings")]
-    public float moveSpeed = 5f;          // ÒÆ¶¯ËÙ¶È
-    public float jumpForce = 7f;          // ÌøÔ¾Á¦¶È
-    public float rotationSpeed = 10f;     // ×ªÏòËÙ¶È£¨Ô½´ó×ªÏòÔ½¿ì£©
-    public float groundCheckDistance = 0.1f; // µØÃæ¼ì²â¾àÀë
-    public LayerMask groundLayer;         // µØÃæ²ã¼¶
+    public float moveSpeed = 5f;          // ç§»åŠ¨é€Ÿåº¦
+    public float jumpForce = 7f;          // è·³è·ƒåŠ›
+    public float rotationSpeed = 120f;    // æ—‹è½¬é€Ÿåº¦
+    public float groundCheckDistance = 0.1f; // åœ°é¢æ£€æµ‹è·ç¦»
+    public LayerMask groundLayer;         // åœ°é¢å±‚çº§
 
     private Rigidbody rb;
     private bool isGrounded;
@@ -16,12 +19,14 @@ public class RobotController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true; // ·ÀÖ¹ÎïÀíĞı×ªµ¼ÖÂµ¹ÏÂ
+        rb.freezeRotation = true; // é˜²æ­¢ç‰©ç†æ—‹è½¬å¯¼è‡´çš„å€¾æ–œ
     }
 
     void Update()
     {
-        // ¼ì²âÊÇ·ñÔÚµØÃæ
+        if (!isControllable) return;
+
+        // æ£€æµ‹æ˜¯å¦åœ¨åœ°é¢
         isGrounded = Physics.Raycast(
             transform.position,
             Vector3.down,
@@ -29,7 +34,7 @@ public class RobotController : MonoBehaviour
             groundLayer
         );
 
-        // ÌøÔ¾
+        // è·³è·ƒ
         if (isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
@@ -38,15 +43,17 @@ public class RobotController : MonoBehaviour
 
     void FixedUpdate()
     {
-        // »ñÈ¡ÊäÈë
+        if (!isControllable) return;
+
+        // è·å–è¾“å…¥
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
-        // ¼ÆËãÒÆ¶¯·½Ïò£¨»ùÓÚÊÀ½ç×ø±êÏµ£©
+        // è®¡ç®—ç§»åŠ¨æ–¹å‘ï¼ˆåŸºäºä¸–ç•Œåæ ‡ç³»ï¼‰
         Vector3 movement = new Vector3(horizontal, 0f, vertical).normalized;
         Vector3 moveVelocity = movement * moveSpeed;
 
-        // Èç¹ûÓĞÊäÈë£¬ÔòĞı×ª½ÇÉ«³¯ÏòÒÆ¶¯·½Ïò
+        // å¦‚æœæœ‰ç§»åŠ¨è¾“å…¥ï¼Œåˆ™æ—‹è½¬è§’è‰²æœå‘ç§»åŠ¨æ–¹å‘
         if (movement != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(movement);
@@ -57,14 +64,26 @@ public class RobotController : MonoBehaviour
             );
         }
 
-        // Ó¦ÓÃÒÆ¶¯ËÙ¶È£¨±£ÁôYÖáËÙ¶ÈÒÔÖ§³ÖÌøÔ¾/ÖØÁ¦£©
+        // åº”ç”¨ç§»åŠ¨é€Ÿåº¦ï¼Œä¿ç•™Yè½´é€Ÿåº¦ä»¥æ”¯æŒè·³è·ƒ/é‡åŠ›
         rb.velocity = new Vector3(moveVelocity.x, rb.velocity.y, moveVelocity.z);
     }
 
-    // ¿ÉÊÓ»¯µØÃæ¼ì²âÏß£¨µ÷ÊÔÓÃ£©
+    // ç»˜åˆ¶åœ°é¢æ£€æµ‹çº¿ï¼ˆè°ƒè¯•ç”¨ï¼‰
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position, transform.position + Vector3.down * groundCheckDistance);
+    }
+
+    public void EnableControl()
+    {
+        isControllable = true;
+        Debug.Log($"{name} æ§åˆ¶å·²å¯ç”¨");
+    }
+
+    public void DisableControl()
+    {
+        isControllable = false;
+        Debug.Log($"{name} æ§åˆ¶å·²ç¦ç”¨");
     }
 }
